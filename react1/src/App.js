@@ -1,6 +1,7 @@
 import React, {useRef, useState, useMemo, useCallback, useReducer} from 'react';
 import UserList from './UserList';
 import CreateUser from './CreateUser';
+import useInputs from './useInputs';
 
 const countActiveUsers = (users) => {
   console.log('활성 사용자 수를 세는 중...');
@@ -9,10 +10,6 @@ const countActiveUsers = (users) => {
 
 
 const initialState = {
-  inputs: {
-    username: '',
-    email: '',
-  },
   users: [
     {
       id: 1,
@@ -35,14 +32,6 @@ const initialState = {
 
 const reducer = (state, action) => {
   switch(action.type){
-    case 'CHANGE_INPUT':
-      return{
-        ...state,
-        inputs: {
-          ...state.inputs,//불변성을 유지시키기 위해.
-          [action.name]: action.value
-        }
-      };
     case 'CREATE_USER':
       return{
         inputs: initialState.inputs,
@@ -68,84 +57,14 @@ const reducer = (state, action) => {
 }
 
 function App() {
-//   const [inputs, setInputs] = useState({
-//     username: '',
-//     email: '',
-//   });
-
-//   const {username, email} = inputs;
-//   const onChange = useCallback(e => {
-//     const {name, value} = e.target;
-//     setInputs({
-//       ...inputs,
-//       [name]: value,
-//     })
-//   }, [inputs]);
-//   const [users, setUsers] = useState([
-//     {
-//         id: 1,
-//         username: 'abc',
-//         email: 'abc@gmail.com',
-//         active: true,
-//     }, {
-//         id: 2,
-//         username: 'efef',
-//         email: 'efef@gmail.com',
-//         active: false,
-//     }, {
-//         id: 3,
-//         username: 'glgl',
-//         email: 'glgl@gmail.com',
-//         active: false,
-//     }
-//   ]);
-
-//   const nextId = useRef(4);
-
-//   const onCreate = useCallback(() => {
-//     const user={
-//       id: nextId.current,
-//       username,
-//       email,
-//       active:true
-//     };
-// //두가지 방법 (배열에 원소 삽입)(push는 사용하면 안됨.update가 안된다.)
-//     //setUsers([...users, user]);//배열에 원소삽입(spread연산자사용)
-//     setUsers(users.concat(user));//배열에 원소삽입(concat연산자사용)
-
-//     setInputs({
-//       username:'',
-//       email:'',
-//     })
-//     nextId.current += 1;
-//   },[username, email, users]);
-
-//   const onRemove = useCallback(id => {
-//     setUsers(users.filter(user => user.id !== id));
-//   }, [users]);
-
-//   const onToggle = useCallback(id => {
-//     setUsers(users.map(user => user.id === id
-//       ? {...user, active: !user.active}
-//       : user
-//       ));
-//   }, [users]);
-
-//   const count = useMemo(() => countActiveUsers(users), [users]);//users가 바뀔 때만 변경
-
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [form, onChange, reset] = useInputs({
+    username: '',
+    email: '',
+  });
+  const {username, email} = form;
   const nextId = useRef(4);
   const {users} = state;
-  const {username, email} = state.inputs;
-
-  const onChange = useCallback(e => {
-    const {name, value} = e.target;
-    dispatch({
-      type:'CHANGE_INPUT',
-      name,//name:name 과 같음.
-      value
-    })
-  }, []);
 
   const onCreate = useCallback(() => {
     dispatch({
@@ -157,7 +76,8 @@ function App() {
       }
     })
     nextId.current += 1;
-  }, [username, email])
+    reset();
+  }, [username, email, reset])
 
   const onToggle = useCallback(id => {
     dispatch({
